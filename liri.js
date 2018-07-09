@@ -4,7 +4,7 @@ var Twitter = require("twitter");
 var Spotify = require("node-spotify-api");
 var request = require('request'); 
 var fs = require("fs"); 
-var table = require("table"); 
+
 
 var twitter = new Twitter ({
     consumer_key: keys.twitterKey.consumer_key,
@@ -30,7 +30,7 @@ var omdbRequest = "";
 //* `do-what-it-says`
 
 var userInput = process.argv[2]; 
-var spotifySongSearch = process.argv[3]; 
+
 
 if (userInput == 'my-tweets'){
     twitterApi(); 
@@ -67,7 +67,7 @@ function twitterApi() {
 
 function songCheck(){
     for (var i = 3; i < process.argv.length; i++){
-        songChoice = process.argv[i]; 
+        songChoice += " " + process.argv[i];
     }
 }
 
@@ -89,3 +89,61 @@ function spotifyApi(songChoice) {
     })
 
 }
+
+function movieCheck() {
+    for (var i = 3; i < process.argv.length; i++) {
+        omdbRequest += " " + process.argv[i];
+    }
+}
+
+function omdbApi(omdbRequest) {
+    
+    if (omdbRequest === undefined) {
+        omdbRequest = "The Thing";
+    }
+
+    const movieUrl = "http://www.omdbapi.com/?apikey=d9ef05ac&t=" + omdbRequest + "&y=&plot=short&tomatoes=true&r=json";
+
+    request(movieUrl, function (err, res, body) {
+        if (err) {
+            console.log(err);
+        } else {
+            let movieObject = JSON.parse(body);
+            let movieTitle = movieObject.Title;
+            let movieYear = movieObject.Year;
+            let moviePlot = movieObject.Plot;
+            let movieActors = movieObject.Actors;
+            console.log("Movie Title: " + movieTitle);
+            console.log("Actors: " + movieActors);
+            console.log("Year: " + movieYear);
+            console.log("Plot: " + moviePlot);
+        }
+    })
+};
+
+
+
+function readFs() {
+
+    fs.readFile("random.txt", "utf8", function (err, results) {
+        const textArray = results.split(",");
+
+        userInput = textArray[0];
+        songChoice = textArray[1];
+
+        if (userInput == 'my-tweets') {
+            twitterApi();
+        } else if (userInput == 'spotify-this-song') {
+            songCheck();
+            spotifyApi(songChoice);
+        } else if (userInput == 'movie-this') {
+            movieCheck();
+            omdbApi(omdbRequest);
+        } else if (userInput == 'do-what-it-says') {
+            readFs();
+        } else {
+            console.log("This is not a valid command. . Try again!")
+        }
+
+    })
+}; 
